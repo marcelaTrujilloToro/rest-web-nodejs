@@ -1,5 +1,6 @@
 import express, { Router } from 'express';
 import path from 'path';
+import compression from 'compression';
 
 interface Options {
   port: number;
@@ -8,7 +9,10 @@ interface Options {
 }
 
 export class Server {
-  private app = express();
+  public readonly app = express();
+
+  private setverListener?: any;
+
   private readonly port: number;
   private readonly publicPath: string;
   private readonly routes: Router;
@@ -29,6 +33,9 @@ export class Server {
     //?habilitar x-www-form-urlencoded (muy usado en angular)
     this.app.use(express.urlencoded({ extended: true }));
 
+    //? ayuda a minimizar las respuestas si es podible del body, para incrementar la velocidad
+    this.app.use(compression());
+
     //-----------
 
     //* Public Folder
@@ -48,8 +55,12 @@ export class Server {
       res.sendFile(indexPath);
     });
 
-    this.app.listen(this.port, () => {
+    this.setverListener = this.app.listen(this.port, () => {
       console.log(`Server running on port ${this.port}`);
     });
+  }
+
+  public close() {
+    this.setverListener.close();
   }
 }
